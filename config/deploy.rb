@@ -74,7 +74,7 @@ namespace :redmine do
   namespace :symlink do
     task :config do
       # copy all shared yml files in config folder
-      run "ln -s #{shared_path}/config/*.yml #{release_path}/config/"
+      run "find #{shared_path}/config/ -type f -iname '*.yml' -print0 | xargs -r0 ln -s -t #{release_path}/config/"
     end
 
     task :files do
@@ -84,12 +84,12 @@ namespace :redmine do
 
     task :plugins do
       # link all installed plugins
-      run "ln -s #{shared_path}/plugins/* #{latest_release}/vendor/plugins"
+      run "find #{shared_path}/plugins/ -mindepth 1 -maxdepth 1 -type d -print0 | xargs -r0 ln -s -t #{latest_release}/vendor/plugins"
     end
 
     task :themes do
       # link all installed themes
-      run "ln -s #{shared_path}/public/themes/* #{latest_release}/public/themes"
+      run "find #{shared_path}/themes/ -mindepth 1 -maxdepth 1 -type d -print0 | xargs -r0 ln -s -t #{latest_release}/public/themes"
     end
   end
 
