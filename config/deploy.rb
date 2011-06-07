@@ -36,10 +36,12 @@ end
 namespace :redmine do
 
   # Rake helper task.
-  def run_remote_rake(rake_cmd)
+  def run_remote_rake(rake_cmd, failsafe = false)
     rake = fetch(:rake, "rake")
     rails_env = fetch(:rails_env, "production")
-    run "cd #{latest_release}; #{rake} RAILS_ENV=#{rails_env} #{rake_cmd.split(',').join(' ')}"
+    command = "cd #{latest_release}; #{rake} RAILS_ENV=#{rails_env} #{rake_cmd.split(',').join(' ')}"
+    command << '; true' if failsafe
+    run command
   end
 
   # check if remote file exist
@@ -94,7 +96,7 @@ namespace :redmine do
   desc "Migrate the database"
   task :migrate, :roles => :db, :only => {:primary => true} do
     deploy.migrate
-    run_remote_rake "db:migrate:upgrade_plugin_migrations"
+    run_remote_rake "db:migrate:upgrade_plugin_migrations", true
     run_remote_rake "db:migrate_plugins"
   end
 
