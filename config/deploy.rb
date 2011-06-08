@@ -55,7 +55,9 @@ namespace :redmine do
 
   desc "Initialize configuration using example files provided in the distribution"
   task :copy_config do
-    Dir["config/*.yml.example"].each { |file| top.upload(File.expand_path(file), File.join(shared_path, file.gsub!(/\.example$/, ''))) }
+    Dir["config/*.yml.example"].each do |file|
+      top.upload(File.expand_path(file), "#{shared_path}/config/#{File.basename(file, '.example')}")
+    end
   end
 
   desc "Perform steps required for first installation" # @see http://www.redmine.org/projects/redmine/wiki/RedmineInstall
