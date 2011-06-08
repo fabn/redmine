@@ -14,7 +14,6 @@ set :rvm_type, :user # Use local use rvm instead of system one
 set :rvm_ruby_string, '1.8.7-p302@redmine'
 # multistage setup, see https://boxpanel.bluebox.net/public/the_vault/index.php/Capistrano_Multi_Stage_Instructions
 set :default_stage, "production"
-set :stages, %w(production staging)
 require 'capistrano/ext/multistage'
 # capistrano tag library see https://github.com/fabn/capistrano-tags
 require 'capistrano-tags'
