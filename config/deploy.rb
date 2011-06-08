@@ -7,13 +7,16 @@ set :scm, :git
 set :use_sudo, false
 set :deploy_via, :remote_cache
 
+# strongly advised to remember to deploy only stable branches
+set :ask_for_tag, true
+
 # rvm setup, see http://beginrescueend.com/integration/capistrano/
 $:.unshift(File.expand_path('./lib', ENV['rvm_path'])) # Add RVM's lib directory to the load path.
 require "rvm/capistrano" # Load RVM's capistrano plugin.
 set :rvm_type, :user # Use local use rvm instead of system one
-set :rvm_ruby_string, '1.8.7-p302@redmine'
+set :rvm_ruby_string, '1.8.7@redmine'
 # multistage setup, see https://boxpanel.bluebox.net/public/the_vault/index.php/Capistrano_Multi_Stage_Instructions
-set :default_stage, "production"
+#set :default_stage, "production"
 require 'capistrano/ext/multistage'
 # capistrano tag library see https://github.com/fabn/capistrano-tags
 require 'capistrano-tags'
