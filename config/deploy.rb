@@ -32,13 +32,17 @@ namespace :deploy do
   end
 end
 
+# defaulting rails_env to production
+set :rails_env, "production" unless exists? :rails_env
+# add other directories to shared folder
+set :shared_children, %w(system log pids) + %w(plugins themes config files)
+
 # Redmine specific tasks
 namespace :redmine do
 
   # Rake helper task.
   def run_remote_rake(rake_cmd, failsafe = false)
     rake = fetch(:rake, "rake")
-    rails_env = fetch(:rails_env, "production")
     command = "cd #{latest_release}; #{rake} RAILS_ENV=#{rails_env} #{rake_cmd.split(',').join(' ')}"
     command << '; true' if failsafe
     run command
@@ -51,13 +55,21 @@ namespace :redmine do
   end
 
   desc "Initialize configuration using example files provided in the distribution"
-  task :init_config do
-    logger.important "To be implemented"
+  task :copy_config do
+    Dir["config/*.yml.example"].each { |file| top.upload(File.expand_path(file), File.join(shared_path, file.gsub!(/\.example$/, ''))) }
   end
 
   desc "Perform steps required for first installation" # @see http://www.redmine.org/projects/redmine/wiki/RedmineInstall
   task :install do
-
+    # copy shared resources
+    symlink.config # configurations
+    symlink.files # files folder
+    symlink.plugins # copy plugins
+    symlink.themes # copy themes
+    # guide steps
+    session_store # step 4
+    migrate # step 5
+    load_default_data # step 6
   end
 
   desc "Perform steps required for upgrades" # see http://www.redmine.org/projects/redmine/wiki/RedmineUpgrade
@@ -93,6 +105,11 @@ namespace :redmine do
     end
   end
 
+  desc "Load default Redmine data"
+  task :load_default_data do
+    run_remote_rake "REDMINE_LANG=#{fetch(:redmine_lang, 'en')},redmine:load_default_data" if fetch(:load_default_data, true)
+  end
+
   desc "Migrate the database"
   task :migrate, :roles => :db, :only => {:primary => true} do
     deploy.migrate
@@ -114,13 +131,18 @@ namespace :redmine do
     run_remote_rake "tmp:cache:clear,tmp:sessions:clear"
   end
 
-  # Perform install or upgrade steps
-  after 'deploy:update_code' do
-    upgrade
+  # Copy template files that you have locally
+  after 'deploy:setup' do
+    redmine.copy_config
   end
 
-  # initialize config files interactively
-  after "deploy:setup" do
-    init_config
+  # Perform a normal deploy before install
+  before 'redmine:install' do
+    deploy.default
+  end
+
+  # Perform a normal deploy before upgrade
+  before 'redmine:upgrade' do
+    deploy.default
   end
 end
