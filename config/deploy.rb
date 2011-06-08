@@ -34,7 +34,7 @@ end
 # defaulting rails_env to production
 set :rails_env, "production" unless exists? :rails_env
 # add other directories to shared folder
-set :shared_children, %w(system log pids) + %w(plugins themes config files)
+set :shared_children, %w(system log pids) + %w(plugins themes config files sqlite)
 
 # Redmine specific tasks
 namespace :redmine do
@@ -104,6 +104,11 @@ namespace :redmine do
       # link all installed themes
       run "find #{shared_path}/themes/ -mindepth 1 -maxdepth 1 -type d -print0 | xargs -r0 ln -s -t #{latest_release}/public/themes"
     end
+
+    task :sqlite do
+      # symlink the sqlite shared folder into the db folder
+      run "ln -s #{shared_path}/sqlite #{latest_release}/db"
+    end
   end
 
   desc "Load default Redmine data"
@@ -145,5 +150,10 @@ namespace :redmine do
   # Perform a normal deploy before upgrade
   before 'redmine:upgrade' do
     deploy.default
+  end
+
+  # link sqlite folder just before the final symlink is created
+  before 'deploy:symlink' do
+    redmine.symlink.sqlite
   end
 end
